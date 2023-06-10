@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgxGalleryAnimation, NgxGalleryImage, NgxGalleryOptions } from '@kolkov/ngx-gallery';
 import { Member } from 'src/app/_models/member';
-import { MembersService } from 'src/app/_services/members.service';
+import { MemberService } from 'src/app/_services/member.service';
 
 @Component({
   selector: 'app-member-detail',
@@ -15,10 +15,10 @@ export class MemberDetailComponent implements OnInit {
   galleryImages: NgxGalleryImage[] = [];
 
   constructor(
-    private memberService: MembersService,
+    private memberService: MemberService,
     private route: ActivatedRoute
-  ){}
-  
+  ) { }
+
   ngOnInit(): void {
     this.loadMember();
 
@@ -29,19 +29,19 @@ export class MemberDetailComponent implements OnInit {
         imagePercent: 100,
         thumbnailsColumns: 4,
         imageAnimation: NgxGalleryAnimation.Slide,
-        preview:false
+        preview: false
       }
     ]
   }
 
   getImages() {
-    if(!this.member){
+    if (!this.member) {
       return [];
     }
 
     const imageUrls = [];
 
-    for(const photo of this.member.photos){
+    for (const photo of this.member.photos) {
       imageUrls.push({
         small: photo.url,
         medium: photo.url,
@@ -52,9 +52,9 @@ export class MemberDetailComponent implements OnInit {
     return imageUrls;
   }
 
-  loadMember(){
+  loadMember() {
     const username = this.route.snapshot.paramMap.get('username');
-    if(!username) {
+    if (!username) {
       return;
     }
 
