@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using API.Data;
 using API.DTOs;
 using API.Entities;
@@ -54,7 +50,9 @@ namespace API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<UserDto>> Login(LoginDto loginDto)
         {
-            var user = await this.dbContext.Users.SingleOrDefaultAsync(u => u.UserName == loginDto.Username);
+            var user = await this.dbContext.Users
+                .Include(x => x.Photos)
+                .SingleOrDefaultAsync(u => u.UserName == loginDto.Username);
 
             if(user is null)
             {
@@ -76,7 +74,8 @@ namespace API.Controllers
             return new UserDto 
             {
                 Username = user.UserName,
-                Token = this.tokenService.CreateToken(user)
+                Token = this.tokenService.CreateToken(user),
+                PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
         }
 
