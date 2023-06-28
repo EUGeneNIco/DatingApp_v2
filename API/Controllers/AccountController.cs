@@ -4,6 +4,7 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Interfaces;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,11 +14,13 @@ namespace API.Controllers
     {
         private readonly DataContext dbContext;
         private readonly ITokenService tokenService;
+        private readonly IMapper mapper;
 
-        public AccountController(DataContext dbContext, ITokenService tokenService)
+        public AccountController(DataContext dbContext, ITokenService tokenService, IMapper mapper)
         {
             this.dbContext = dbContext;
             this.tokenService = tokenService;
+            this.mapper = mapper;
         }
 
         [HttpPost("register")]
@@ -28,13 +31,13 @@ namespace API.Controllers
                 return BadRequest("Username is taken.");
             }
 
+            var user = this.mapper.Map<AppUser>(registerDto);
+
             using var hmac = new HMACSHA512();
 
-            var user = new AppUser {
-                UserName = registerDto.Username.ToLower(),
-                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password)),
-                PasswordSalt = hmac.Key
-            };
+            user.UserName = registerDto.Username.ToLower();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.Password));
+            user.PasswordSalt = hmac.Key;
 
             this.dbContext.Users.Add(user);
 
@@ -43,6 +46,7 @@ namespace API.Controllers
             return new UserDto 
             {
                 Username = user.UserName,
+                KnownAs = user.KnownAs,
                 Token = this.tokenService.CreateToken(user)
             };
         } 
@@ -74,6 +78,7 @@ namespace API.Controllers
             return new UserDto 
             {
                 Username = user.UserName,
+                KnownAs = user.KnownAs,
                 Token = this.tokenService.CreateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
             };
